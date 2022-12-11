@@ -14,7 +14,6 @@ dir_to_val_labels = r'C:\Code\Dataset\LIVECell_dataset_2021\annotations\LIVECell
 dir_to_train_labels = r'C:\Code\Dataset\LIVECell_dataset_2021\annotations\LIVECell\livecell_coco_train.json'
 dir_to_test_labels = r'C:\Code\Dataset\LIVECell_dataset_2021\annotations\LIVECell\livecell_coco_test.json'
 
-
 def get_image_id_by_name(name, coco_val_labels, coco_train_labels):
     id = -1
     val_test_flag = -1
@@ -57,8 +56,8 @@ def draw_bounding_boxes(im, annotation):
 def generate_segmentation_mask(im, annotation):
     local_im = np.zeros_like(im,dtype=np.uint8)
     for i in range(len(annotation)):
-        r = np.zeros(int(len(annotations[i][2][0])/2))
-        c = np.zeros(int(len(annotations[i][2][0])/2))
+        r = np.zeros(int(len(annotation[i][2][0])/2))
+        c = np.zeros(int(len(annotation[i][2][0])/2))
         for j in range(int(len(annotation[i][2][0])/2)):
            # local_im[int(annotations[i][2][0][j*2+1])-1, int(annotations[i][2][0][j*2])-1] = 255
             r[j] = int(annotation[i][2][0][j*2+1])-1
@@ -68,8 +67,15 @@ def generate_segmentation_mask(im, annotation):
 
     return local_im
 
+
+
+# create folder for label masks
+dir_to_masks = dir_to_test_ims + '_masks'
+if not os.path.isdir(dir_to_masks):
+    os.makedirs(dir_to_masks)
+
 # load image file paths
-ims = glob.glob(dir_to_train_ims + '\*.tif')
+ims = glob.glob(dir_to_test_ims + '\*.tif')
 
 # load label json object 
 with open(dir_to_val_labels) as f:
@@ -78,22 +84,14 @@ with open(dir_to_val_labels) as f:
 with open(dir_to_train_labels) as f:
     coco_train_labels = json.load(f)
 
+with open(dir_to_test_labels) as f:
+    coco_test_labels = json.load(f)
 
-imname = os.path.split(ims[0])[-1]
-im = io.imread(ims[0])
-io.imshow(im)
-io.show()
-
-single_label, train_val_flag = get_image_id_by_name(imname, coco_val_labels, coco_train_labels)
-
-annotations = get_annotations_by_id(single_label, train_val_flag, coco_val_labels, coco_train_labels)
-annotated_im = draw_bounding_boxes(im, annotations)
-io.imshow(annotated_im)
-io.show()
-
-segmentation_mask = generate_segmentation_mask(im, annotations)
-
-io.imshow(segmentation_mask)
-io.show()
-
-print(annotations)
+# generate label masks
+for image in ims:
+    imname = os.path.split(image)[-1]
+    im = io.imread(image)
+    single_label, train_val_flag = get_image_id_by_name(imname, coco_test_labels, coco_test_labels)
+    annotations = get_annotations_by_id(single_label, train_val_flag, coco_test_labels, coco_test_labels)
+    segmentation_mask = generate_segmentation_mask(im, annotations)
+    io.imsave(dir_to_masks+'/'+ imname[:-4]+'_mask.png', segmentation_mask)
