@@ -84,8 +84,8 @@ def main():
         VAL_IM_DIR,
         VAL_MASK_DIR,
         BATCH_SIZE,
-        None, # disable data augmentaiton
-        None, # disable data augmentaiton
+        None, # disable data augmentation
+        None, # disable data augmentation
         NUM_WORKERS,
         PIN_MEMORY,
     )
